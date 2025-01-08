@@ -1,0 +1,21 @@
+* edit disk-config.nix::device
+
+volume labels can switch around during reboot and cause the system to try to boot from the wrong disk.
+For this reason, we will use /dev/disk/by-id.
+By running the commands below, we can determine the devices we need.
+(see also https://joinemm.dev/blog/nixos-hetzner-cloud for more details)
+
+#+begin_src bash
+
+lsblk
+ls -la /dev/disk/by-id
+
+#+end_src
+
+* nixify target
+
+#+begin_src bash
+
+log-command --label=nixify -o -- nix run github:nix-community/nixos-anywhere -- --build-on-remote --flake .#hetzner-cloud --target-host root@138.199.149.211
+
+#+end_src
