@@ -1,9 +1,17 @@
 # Example to create a bios compatible gpt partition
-{ lib, ... }:
-{
+{ ... }: {
   disko.devices = {
     disk.disk1 = {
-      device = lib.mkDefault "/dev/sda";
+      # volume labels can switch around during reboot and
+      # cause the system to try to boot from the wrong disk.
+      # For this reason, we will use /dev/disk/by-id.
+      # By running the following commands,
+      # we can determine the devices we need:
+      # https://joinemm.dev/blog/nixos-hetzner-cloud#disks
+      #
+      # $ lsblk
+      # $ ls -la /dev/disk/by-id
+      device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_56766495";
       type = "disk";
       content = {
         type = "gpt";
@@ -44,9 +52,7 @@
               type = "filesystem";
               format = "ext4";
               mountpoint = "/";
-              mountOptions = [
-                "defaults"
-              ];
+              mountOptions = [ "defaults" ];
             };
           };
         };
