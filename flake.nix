@@ -4,7 +4,7 @@
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { nixpkgs, disko, ... }: {
-    nixosConfigurations.museum = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.hetzner-cloud = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [ disko.nixosModules.disko ./configuration.nix ];
     };
