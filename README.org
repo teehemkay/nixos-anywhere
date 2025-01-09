@@ -77,25 +77,25 @@ ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basen
 
 ** update =disk-config.nix=
 
-#+begin_src fish :results output :var id=get-disk-id
-echo the id is $id
-#+end_src
+#+BEGIN_SRC fish :results file link :file disk-config.nix :var ID=get-disk-id
+sed -i 's|device = "/dev/disk/by-id/[^"]*"|device = "/dev/disk/by-id/'$ID'"|' disk-config.nix
+#+END_SRC
 
 #+RESULTS:
-: the id is scsi-0QEMU_QEMU_HARDDISK_56766495
-:
+[[file:disk-config.nix]]
 
-** getting the disk ID
+** Detailed explanation on obtaining the disk ID
 
-Block devices list
+List block devices.
 
+#+name: list-block-devices
 #+begin_src bash :results table :dir /ssh:hetzner:
 
 lsblk -nl
 
 #+end_src
 
-#+RESULTS:
+#+RESULTS: list-block-devices
 | sda       |   8:0 | 0 | 38.1G | 0 | disk |            |
 | sda1      |   8:1 | 0 | 1M    | 0 | part |            |
 | sda2      |   8:2 | 0 | 500M  | 0 | part | /boot      |
@@ -103,26 +103,28 @@ lsblk -nl
 | sr0       |  11:0 | 1 | 1024M | 0 | rom  |            |
 | pool-root | 254:0 | 0 | 37.7G | 0 | lvm  | /nix/store |
 
-We now look for lines where the 6th field equals "disk" and, for those lines, print the 1st field.
+Look for lines where the 6th field equals "disk" and, for those lines, print the 1st field.
 
+#+name: disk-block-device-name
 #+begin_src bash :results output :dir /ssh:hetzner:
 
 lsblk -nl | awk '$6=="disk" {print $1}' | head -1
 
 #+end_src
 
-#+RESULTS: get-first-disk
+#+RESULTS: disk-block-device-name
 : sda
 
-Device IDs list
+List device IDs.
 
+#+name: list-device-ids
 #+begin_src bash :results table :dir /ssh:hetzner:
 
 ls -l /dev/disk/by-id/* | awk '{print $9, $10, $11}'
 
 #+end_src
 
-#+RESULTS:
+#+RESULTS: list-device-ids
 | /dev/disk/by-id/ata-QEMU_DVD-ROM_QM00001                                                     | -> | ../../sr0  |
 | /dev/disk/by-id/dm-name-pool-root                                                            | -> | ../../dm-0 |
 | /dev/disk/by-id/dm-uuid-LVM-kuuuACyCQy4wwedPSIOrLlJcwbjhasLZFZaCEXWejh5xve28SnLOl1zeryR8PVEN | -> | ../../dm-0 |
@@ -134,14 +136,16 @@ ls -l /dev/disk/by-id/* | awk '{print $9, $10, $11}'
 
 And finally, the disk ID
 
+#+name: disk-device-id
 #+begin_src bash :results output :dir /ssh:hetzner:
 
 DISK=$(lsblk -nl | awk '$6=="disk" {print $1}' | head -1)
-ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basename
+
+ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basename | tr -d '[:space:]'
 
 #+end_src
 
-#+RESULTS:
+#+RESULTS: disk-device-id
 : scsi-0QEMU_QEMU_HARDDISK_56766495
 
 * nixify target
