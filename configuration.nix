@@ -16,7 +16,7 @@
     efiInstallAsRemovable = true;
   };
   services.openssh.enable = true;
-  services.openssh.permitRootLogin = "prohibit-password";
+  services.openssh.settings.PermitRootLogin = "prohibit-password";
 
   # Enable the user to use sudo without a password.
   # It makes it easier to update the server remotely.
