@@ -6,21 +6,21 @@ let's add an entry to file:../dotfiles/ssh/config
 #+name: ip-address
 138.199.149.211
 
-#+name: add-s-ssh-config
+#+name: add-hetzner-ssh-config
 #+begin_src fish :results output :var ip=ip-address
-echo -e '\nHost s\nHostName '$ip'User root\nIdentityFile ~/.ssh/id_ed25519_ext' >> ~/.ssh/config
+echo -e '\nHost hetzner\nHostName '$ip'User root\nIdentityFile ~/.ssh/id_ed25519_ext' >> ~/.ssh/config
 tail ~/.ssh/config
 #+end_src
 
-#+RESULTS: add-s-ssh-config
+#+RESULTS: add-hetzner-ssh-config
 #+begin_example
-
 Host gh
 HostName github.com
 User git
 IdentityFile ~/.ssh/id_ed25519_ext
 
-Host s
+
+Host hetzner
 HostName 138.199.149.211
 User root
 IdentityFile ~/.ssh/id_ed25519_ext
@@ -30,7 +30,7 @@ IdentityFile ~/.ssh/id_ed25519_ext
 
 When we're done, lets clean up.
 
-#+name: remove-s-ssh-config
+#+name: remove-hetzner-ssh-config
 #+begin_src fish :results output
 set -l config ~/dev/my/dotfiles/ssh/config
 
@@ -46,7 +46,6 @@ tail $config
 
 #+RESULTS: remove-s-ssh-config
 #+begin_example
-
 Host ec2
 HostName 52.59.177.214
 User ec2-user
@@ -56,6 +55,7 @@ Host gh
 HostName github.com
 User git
 IdentityFile ~/.ssh/id_ed25519_ext
+
 #+end_example
 
 * update the disk device ID
@@ -147,6 +147,7 @@ ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basen
 
 #+RESULTS: disk-device-id
 : scsi-0QEMU_QEMU_HARDDISK_56766495
+
 
 * nixify target
 
