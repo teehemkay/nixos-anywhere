@@ -68,7 +68,7 @@ For this reason, we want to use the id (from /dev/disk/by-id) of the first ~disk
 #+begin_src bash :results output :dir /ssh:hetzner:
 
 DISK=$(lsblk -nl | awk '$6=="disk" {print $1}' | head -1)
-ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basename
+ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basename | tr -d '[:space:]'
 
 #+end_src
 
