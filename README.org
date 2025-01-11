@@ -78,7 +78,7 @@ ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basen
 ** update =disk-config.nix=
 
 #+BEGIN_SRC fish :results file link :file disk-config.nix :var ID=get-disk-id
-sed -i .bak 's|device = "/dev/disk/by-id/[^"]*"|device = "/dev/disk/by-id/'$ID'"|' disk-config.nix
+sed -i '' 's|device = "/dev/disk/by-id/[^"]*"|device = "/dev/disk/by-id/'$ID'"|' disk-config.nix
 #+END_SRC
 
 #+RESULTS:
