@@ -150,7 +150,8 @@ ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basen
 #+RESULTS: disk-device-id
 : scsi-0QEMU_QEMU_HARDDISK_56766495
 
-* nixify the target server
+* nixosify the target server
+
 ** update =nixos-anywhere= flake
 #+begin_src fish :results output :session *flake-updagte* :async yes
 
