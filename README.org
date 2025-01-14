@@ -10,17 +10,21 @@ let's add an entry to file:../dotfiles/ssh/config
 
 #+name: add-hetzner-ssh-config
 #+begin_src fish :results output :var ip=ip-address
-echo -e '\nHost hetzner\nHostName '$ip'User root\nIdentityFile ~/.ssh/id_ed25519_ext' >> ~/.ssh/config
+# NB: ip-address ends w/
+echo -e '
+Host hetzner
+HostName '$ip'User root
+IdentityFile ~/.ssh/id_ed25519_ext' >> ~/.ssh/config
 tail ~/.ssh/config
 #+end_src
 
 #+RESULTS: add-hetzner-ssh-config
 #+begin_example
+
 Host gh
 HostName github.com
 User git
 IdentityFile ~/.ssh/id_ed25519_ext
-
 
 Host hetzner
 HostName 138.199.149.211
@@ -46,8 +50,9 @@ mv $config'.txt' $config
 tail $config
 #+end_src
 
-#+RESULTS: remove-s-ssh-config
+#+RESULTS: remove-hetzner-ssh-config
 #+begin_example
+
 Host ec2
 HostName 52.59.177.214
 User ec2-user
@@ -57,8 +62,8 @@ Host gh
 HostName github.com
 User git
 IdentityFile ~/.ssh/id_ed25519_ext
-
 #+end_example
+
 
 * update the disk device ID
 
