@@ -8,13 +8,22 @@ let's add an entry to file:../dotfiles/ssh/config
 #+name: ip-address
 138.199.149.211
 
+This seems needed to bootstrap org-mode recognizing =fish= as a language...
+
+#+begin_src bash :results silent
+echo "hello world!"
+#+end_src
+
 #+name: add-hetzner-ssh-config
 #+begin_src fish :results output :var ip=ip-address
-# NB: ip-address ends w/
-echo -e '
+# NB: ip-address ends w/ a \n
+set -l ip_address (string trim $ip)
+
+echo -e "
 Host hetzner
-HostName '$ip'User root
-IdentityFile ~/.ssh/id_ed25519_ext' >> ~/.ssh/config
+HostName $ip_address
+User root
+IdentityFile ~/.ssh/id_ed25519_ext" >> ~/.ssh/config
 tail ~/.ssh/config
 #+end_src
 
