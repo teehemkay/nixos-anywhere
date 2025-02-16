@@ -73,7 +73,6 @@ User git
 IdentityFile ~/.ssh/id_ed25519_ext
 #+end_example
 
-
 * update the disk device ID
 
 Volume labels can switch around during reboot and cause the system to try to boot from the wrong disk.
@@ -167,6 +166,7 @@ ls -l /dev/disk/by-id/* | grep "../../${DISK}$" | awk '{print $9}' | xargs basen
 * nixosify the target server
 
 ** update =nixos-anywhere= flake
+
 #+begin_src fish :results output :session *flake-updagte* :async yes
 
 git pull -r origin main
