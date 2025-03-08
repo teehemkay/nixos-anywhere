@@ -8,7 +8,7 @@ let's add an entry to file:../dotfiles/ssh/config
 #+name: ip-address
 138.199.149.211
 
-This seems needed to bootstrap org-mode recognizing =fish= as a language...
+The following code block seems needed to bootstrap org-mode into recognizing =fish= as a language...
 
 #+begin_src bash :results silent
 echo "hello world!"
