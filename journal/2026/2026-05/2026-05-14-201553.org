@@ -1,0 +1,67 @@
+#+TITLE: Syncing the fork with nix-community/nixos-anywhere-examples
+#+DATE: [2026-05-14 Thu 20:15]
+#+PROJECT: nixos-anywhere
+
+* Context
+
+Context: the upstream sync of [[file:~/dev/my/nixos-anywhere/flake.nix][flake.nix]] + friends after ~year of fork drift (maintenance, post-merge).
+
+No prior session continuation. Branch =main=, working tree clean. Fork had thirteen local commits ahead of an old upstream snapshot (~year of customisation focused on hetzner). Upstream had advanced with a digitalocean refactor (split out into [[file:~/dev/my/nixos-anywhere/digitalocean.nix][digitalocean.nix]]), a =nixos-facter-modules= input, and several generic targets. Merge commit landed as [[orgit-rev:my/nixos-anywhere::f31c719f972deecf60595d63dacb4b33e60163f8][f31c719]], lock refresh as [[orgit-rev:my/nixos-anywhere::8c11544156f1317a2d11ebc69a4912934108db5a][8c11544]], pushed to origin/main.
+
+* Project Notes
+
+** Key Decisions
+
+- Took upstream wholesale for =flake.nix= (all five targets), rather than staying slim with just hetzner. Trigger was tmk's "I'm planning to also use digital ocean" — a roadmap signal that changed which option dominated. Recorded in [[orgit-rev:my/nixos-anywhere::f31c719f972deecf60595d63dacb4b33e60163f8][f31c719]].
+- Wrapped =disk-config.nix='s =device= in =lib.mkDefault= so the digitalocean target's =/dev/vda= override can win without =lib.mkForce= acrobatics. This is the linchpin that lets one =disk-config.nix= serve both hetzner (single definition wins) and digitalocean (override wins).
+- Updated the README's deploy-time =sed= regex to match the new =device = lib.mkDefault "..."= form. If we'd left it alone, the next hetzner deploy would have silently failed to replace the disk ID.
+- Adopted upstream's =@ args:= signature in =configuration.nix= and appended =args.extraPublicKeys= to root keys — costs nothing locally, keeps the file compatible with upstream's test harness, and prevents this conflict from recurring on the next sync.
+- Bundled the plumbing edits (=disk-config.nix=, =README.org=) into the same merge commit rather than a follow-up. tmk's call; reasonable framing as "merge resolution in spirit".
+
+** Conversation Excerpts
+
+#+begin_quote
+tmk: I'm planning to also use digital ocean. So leaning towards (2). What's your take
+#+end_quote
+
+The "what's your take" matters — tmk wants my honest opinion before locking in their lean, not just confirmation. The lean is real but not yet final.
+
+#+begin_quote
+Bot (earlier, wrong): Upstream has a latent bug: it destructures =nixos-facter-modules= from outputs but never declares it in =inputs.*=. The =generic-nixos-facter= config would fail to evaluate.
+
+Bot (after =git show upstream/main:flake.nix=): I was wrong about the bug — upstream does declare =nixos-facter-modules= as an input (line 5 of upstream's flake.nix).
+#+end_quote
+
+The retraction matters more than the original claim — see Technical Insights below.
+
+* Technical Insights
+
+** Conflict markers can lie about adjacent unchanged regions
+
+The merged =flake.nix= with conflict markers showed only =nixpkgs= and =disko= inputs at the top (lines 2-4, outside any conflict region). I inferred upstream was missing the =nixos-facter-modules= input declaration and would fail to evaluate =generic-nixos-facter=. Then I ran =git show upstream/main:flake.nix= and saw =inputs.nixos-facter-modules.url= was right there at line 5.
+
+What probably happened: git's conflict detection grouped the new input line into the upstream side of the larger output-block conflict that started just below it. The unchanged lines stayed visible at the top, the new adjacent line got absorbed into =<<<...>>>= one side. The lesson: when reasoning about what upstream has, read upstream directly (=git show <ref>:<path>=). Don't reason from the merge-state file — it's a derived artifact with its own quirks.
+
+** Textual merge tools don't catch semantic merge conflicts
+
+=disk-config.nix= had no textual conflict markers — local hardcoded a hetzner disk ID, upstream introduced =lib.mkDefault "/dev/sda"=, but those didn't collide line-by-line for git's purposes. The semantic conflict only surfaced when =nix flake check= caught:
+
+#+begin_example
+error: The option `disko.devices.disk.disk1.device' is defined multiple times
+- In `.../disk-config.nix': "/dev/disk/by-id/scsi-0QEMU_..."
+- In `.../flake.nix': "/dev/vda"
+#+end_example
+
+The fix wasn't conflict resolution; it was making the base config /composable/ via =lib.mkDefault=. Running =flake check= /before/ committing the merge was load-bearing — without it I'd have pushed broken digitalocean evaluation.
+
+** =nix flake check= is all-or-nothing; use per-target eval for guarded targets
+
+Upstream's =generic= and =generic-nixos-facter= contain intentional =throw= statements in placeholder files (=hardware-configuration.nix=, =facter.json=) that fire unless the operator regenerates them at deploy time. =nix flake check= evaluates everything and aborts at the first error, hiding the status of later targets.
+
+Workaround: =nix eval ".#nixosConfigurations.<name>.config.system.build.toplevel.drvPath" --raw= per target. Returns a derivation path on success, a stack trace on failure. Loops cleanly over the targets you care about.
+
+** =lib.mkDefault= as base-config composability primitive
+
+Pattern worth remembering: when a NixOS module is imported by several flake outputs and some of them need to override a specific option, wrap that option's default with =lib.mkDefault=. Importers that say nothing get the default; importers that set their own value win without =mkForce=. Costs zero in the single-importer case (one definition is one definition, regardless of priority).
+
+The deploy-time =sed= here is a hint that this option /is/ a per-host knob. Anything sed-replaced at deploy is by definition not authoritative; =mkDefault= just makes that explicit in the type system.
