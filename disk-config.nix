@@ -1,5 +1,5 @@
 # Example to create a bios compatible gpt partition
-{ ... }: {
+{ lib, ... }: {
   disko.devices = {
     disk.disk1 = {
       # volume labels can switch around during reboot and
@@ -11,7 +11,8 @@
       #
       # $ lsblk
       # $ ls -la /dev/disk/by-id
-      device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_56766495";
+      # mkDefault lets per-target overrides (e.g. digitalocean -> /dev/vda) win.
+      device = lib.mkDefault "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_56766495";
       type = "disk";
       content = {
         type = "gpt";
